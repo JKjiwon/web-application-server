@@ -24,9 +24,10 @@ class HttpRequestTest {
         HttpRequest httpRequest = new HttpRequest(fileInputStream);
 
         // request line
-        assertThat(httpRequest.getHttpMethod()).isEqualTo("GET");
-        assertThat(httpRequest.getUri()).isEqualTo("/user/create?name=jiwon&password=1234&email=jwkim.oa@gmail.com");
-        assertThat(httpRequest.getHttpVersion()).isEqualTo("HTTP/1.1");
+        HttpRequest.RequestLine requestLine = httpRequest.getRequestLine();
+        assertThat(requestLine.getHttpMethod()).isEqualTo("GET");
+        assertThat(requestLine.getUri()).isEqualTo("/user/create?name=jiwon&password=1234&email=jwkim.oa@gmail.com");
+        assertThat(requestLine.getHttpVersion()).isEqualTo("HTTP/1.1");
 
         // headers
         Map<String, String> headers = httpRequest.getHeaders();
@@ -55,9 +56,10 @@ class HttpRequestTest {
         HttpRequest httpRequest = new HttpRequest(fileInputStream);
 
         // request line
-        assertThat(httpRequest.getHttpMethod()).isEqualTo("POST");
-        assertThat(httpRequest.getUri()).isEqualTo("/user/create");
-        assertThat(httpRequest.getHttpVersion()).isEqualTo("HTTP/1.1");
+        HttpRequest.RequestLine requestLine = httpRequest.getRequestLine();
+        assertThat(requestLine.getHttpMethod()).isEqualTo("POST");
+        assertThat(requestLine.getUri()).isEqualTo("/user/create");
+        assertThat(requestLine.getHttpVersion()).isEqualTo("HTTP/1.1");
 
         // headers
         Map<String, String> headers = httpRequest.getHeaders();

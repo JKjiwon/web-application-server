@@ -28,9 +28,9 @@ public class RequestHandler extends Thread {
 
         try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()) {
             HttpRequest httpRequest = new HttpRequest(in);
+            HttpRequest.RequestLine requestLine = httpRequest.getRequestLine();
 
-
-            if ("/user/create".equals(httpRequest.getUri())) {
+            if ("/user/create".equals(requestLine.getUri())) {
                 Map<String, String> params = httpRequest.getParameters();
                 User user = new User(params.get("userId"),
                         params.get("password"),
@@ -39,7 +39,7 @@ public class RequestHandler extends Thread {
                 DataBase.addUser(user);
                 DataOutputStream dos = new DataOutputStream(out);
                 response302Header(dos, "/index.html");
-            } else if ("/user/login".equals(httpRequest.getUri())) {
+            } else if ("/user/login".equals(requestLine.getUri())) {
                 Map<String, String> params = httpRequest.getParameters();
                 User user = DataBase.findUserById(params.get("userId"));
                 if (user == null) {
@@ -54,7 +54,7 @@ public class RequestHandler extends Thread {
                     DataOutputStream dos = new DataOutputStream(out);
                     response302LoginHeader(dos, "/user/login_failed.html", false);
                 }
-            } else if ("/user/list".equals(httpRequest.getUri())) {
+            } else if ("/user/list".equals(requestLine.getUri())) {
                 Map<String, String> cookies = HttpRequestUtils.parseCookies(httpRequest.getHeaders().get("Cookie"));
                 boolean logined = isLogin(cookies.get("logined"));
 
@@ -80,13 +80,13 @@ public class RequestHandler extends Thread {
                 DataOutputStream dos = new DataOutputStream(out);
                 response200Header(dos, body.length);
                 responseBody(dos, body);
-            } else if (httpRequest.getUri().endsWith(".css")) {
+            } else if (requestLine.getUri().endsWith(".css")) {
                 DataOutputStream dos = new DataOutputStream(out);
-                byte[] body = Files.readAllBytes(new File("./webapp" + httpRequest.getUri()).toPath());
+                byte[] body = Files.readAllBytes(new File("./webapp" + requestLine.getUri()).toPath());
                 response200CssHeader(dos, body.length);
                 responseBody(dos, body);
             } else {
-                responseResource(out, httpRequest.getUri());
+                responseResource(out, requestLine.getUri());
             }
 
         } catch (IOException e) {

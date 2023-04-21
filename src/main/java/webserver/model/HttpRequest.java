@@ -17,26 +17,45 @@ public class HttpRequest {
 
     private static final Logger log = LoggerFactory.getLogger(HttpRequest.class);
 
-    private String httpMethod;
-    private String uri;
-    private String httpVersion;
+    private RequestLine requestLine;
 
     private Map<String, String> headers;
 
     private Map<String, String> parameters;
 
+    public static class RequestLine {
+        private String httpMethod;
+        private String uri;
+        private String httpVersion;
+
+        public RequestLine(String httpMethod, String uri, String httpVersion) {
+            this.httpMethod = httpMethod;
+            this.uri = uri;
+            this.httpVersion = httpVersion;
+        }
+
+        public String getHttpMethod() {
+            return httpMethod;
+        }
+
+        public String getUri() {
+            return uri;
+        }
+
+        public String getHttpVersion() {
+            return httpVersion;
+        }
+    }
+
     public HttpRequest(InputStream in) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
-        String requestLine = br.readLine();
-        log.debug("request Line: {}", requestLine);
 
-        if (requestLine == null) {
+        String requestLineRead = br.readLine();
+        if (requestLineRead == null) {
             return;
         }
-        String[] requestLineTokens = requestLine.split(" ");
-        httpMethod = requestLineTokens[0];
-        uri = requestLineTokens[1];
-        httpVersion = requestLineTokens[2];
+        String[] requestLineTokens = requestLineRead.split(" ");
+        requestLine = new RequestLine(requestLineTokens[0], requestLineTokens[1], requestLineTokens[2]);
 
         headers = new HashMap<>();
         String header;
@@ -46,6 +65,7 @@ public class HttpRequest {
             headers.put(pair.getKey(), pair.getValue());
         }
 
+        String uri = requestLine.getUri();
         if (uri.contains("?")) {
             int idx = uri.indexOf("?");
             String params = uri.substring(idx + 1);
@@ -59,16 +79,8 @@ public class HttpRequest {
         }
     }
 
-    public String getHttpMethod() {
-        return httpMethod;
-    }
-
-    public String getUri() {
-        return uri;
-    }
-
-    public String getHttpVersion() {
-        return httpVersion;
+    public RequestLine getRequestLine() {
+        return requestLine;
     }
 
     public Map<String, String> getHeaders() {
