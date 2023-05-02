@@ -19,63 +19,36 @@ public class HttpRequest {
 
     private RequestLine requestLine;
 
-    private Map<String, String> headers;
+    private Map<String, String> headers = new HashMap<>();
 
-    private Map<String, String> parameters;
+    private Map<String, String> params = new HashMap<>();
 
-    public static class RequestLine {
-        private String httpMethod;
-        private String uri;
-        private String httpVersion;
-
-        public RequestLine(String httpMethod, String uri, String httpVersion) {
-            this.httpMethod = httpMethod;
-            this.uri = uri;
-            this.httpVersion = httpVersion;
-        }
-
-        public String getHttpMethod() {
-            return httpMethod;
-        }
-
-        public String getUri() {
-            return uri;
-        }
-
-        public String getHttpVersion() {
-            return httpVersion;
-        }
-    }
 
     public HttpRequest(InputStream in) throws IOException {
-        BufferedReader br = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
+        try {
+            BufferedReader br = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
 
-        String requestLineRead = br.readLine();
-        if (requestLineRead == null) {
-            return;
-        }
-        String[] requestLineTokens = requestLineRead.split(" ");
-        requestLine = new RequestLine(requestLineTokens[0], requestLineTokens[1], requestLineTokens[2]);
+            String line = br.readLine();
+            if (line == null) {
+                return;
+            }
 
-        headers = new HashMap<>();
-        String header;
-        while (!(header = br.readLine()).equals("")) {
-            log.debug("header: {}", header);
-            HttpRequestUtils.Pair pair = HttpRequestUtils.parseHeader(header);
-            headers.put(pair.getKey(), pair.getValue());
-        }
+            requestLine = new RequestLine(line);
 
-        String uri = requestLine.getUri();
-        if (uri.contains("?")) {
-            int idx = uri.indexOf("?");
-            String params = uri.substring(idx + 1);
-            parameters = HttpRequestUtils.parseQueryString(params);
-        }
+            while (!(line = br.readLine()).equals("")) {
+                log.debug("header: {}", line);
+                HttpRequestUtils.Pair pair = HttpRequestUtils.parseHeader(line);
+                headers.put(pair.getKey(), pair.getValue());
+            }
 
-        if (headers.get("Content-Length") != null) {
-            int contentLength = Integer.parseInt(headers.get("Content-Length"));
-            String params = IOUtils.readData(br, contentLength);
-            parameters = HttpRequestUtils.parseQueryString(params);
+            if (requestLine.getMethod().equals(HttpMethod.POST)) {
+                int contentLength = Integer.parseInt(headers.get("Content-Length"));
+                params = HttpRequestUtils.parseQueryString(IOUtils.readData(br, contentLength));
+            } else {
+                params = requestLine.getParams();
+            }
+        } catch (IOException e) {
+            log.error(e.getMessage());
         }
     }
 
@@ -87,7 +60,7 @@ public class HttpRequest {
         return headers;
     }
 
-    public Map<String, String> getParameters() {
-        return parameters;
+    public Map<String, String> getParams() {
+        return params;
     }
 }

@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.HttpRequestUtils;
 import webserver.model.HttpRequest;
+import webserver.model.RequestLine;
 
 import java.io.*;
 import java.net.Socket;
@@ -28,10 +29,10 @@ public class RequestHandler extends Thread {
 
         try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()) {
             HttpRequest httpRequest = new HttpRequest(in);
-            HttpRequest.RequestLine requestLine = httpRequest.getRequestLine();
+            RequestLine requestLine = httpRequest.getRequestLine();
 
-            if ("/user/create".equals(requestLine.getUri())) {
-                Map<String, String> params = httpRequest.getParameters();
+            if ("/user/create".equals(requestLine.getPath())) {
+                Map<String, String> params = httpRequest.getParams();
                 User user = new User(params.get("userId"),
                         params.get("password"),
                         params.get("name"),
@@ -39,8 +40,8 @@ public class RequestHandler extends Thread {
                 DataBase.addUser(user);
                 DataOutputStream dos = new DataOutputStream(out);
                 response302Header(dos, "/index.html");
-            } else if ("/user/login".equals(requestLine.getUri())) {
-                Map<String, String> params = httpRequest.getParameters();
+            } else if ("/user/login".equals(requestLine.getPath())) {
+                Map<String, String> params = httpRequest.getParams();
                 User user = DataBase.findUserById(params.get("userId"));
                 if (user == null) {
                     DataOutputStream dos = new DataOutputStream(out);
@@ -54,7 +55,7 @@ public class RequestHandler extends Thread {
                     DataOutputStream dos = new DataOutputStream(out);
                     response302LoginHeader(dos, "/user/login_failed.html", false);
                 }
-            } else if ("/user/list".equals(requestLine.getUri())) {
+            } else if ("/user/list".equals(requestLine.getPath())) {
                 Map<String, String> cookies = HttpRequestUtils.parseCookies(httpRequest.getHeaders().get("Cookie"));
                 boolean logined = isLogin(cookies.get("logined"));
 
@@ -80,13 +81,13 @@ public class RequestHandler extends Thread {
                 DataOutputStream dos = new DataOutputStream(out);
                 response200Header(dos, body.length);
                 responseBody(dos, body);
-            } else if (requestLine.getUri().endsWith(".css")) {
+            } else if (requestLine.getPath().endsWith(".css")) {
                 DataOutputStream dos = new DataOutputStream(out);
-                byte[] body = Files.readAllBytes(new File("./webapp" + requestLine.getUri()).toPath());
+                byte[] body = Files.readAllBytes(new File("./webapp" + requestLine.getPath()).toPath());
                 response200CssHeader(dos, body.length);
                 responseBody(dos, body);
             } else {
-                responseResource(out, requestLine.getUri());
+                responseResource(out, requestLine.getPath());
             }
 
         } catch (IOException e) {
@@ -140,7 +141,6 @@ public class RequestHandler extends Thread {
             log.error(e.getMessage());
         }
     }
-
 
     private void response302Header(DataOutputStream dos, String url) {
         try {

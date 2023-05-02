@@ -24,9 +24,9 @@ class HttpRequestTest {
         HttpRequest httpRequest = new HttpRequest(fileInputStream);
 
         // request line
-        HttpRequest.RequestLine requestLine = httpRequest.getRequestLine();
-        assertThat(requestLine.getHttpMethod()).isEqualTo("GET");
-        assertThat(requestLine.getUri()).isEqualTo("/user/create?name=jiwon&password=1234&email=jwkim.oa@gmail.com");
+        RequestLine requestLine = httpRequest.getRequestLine();
+        assertThat(requestLine.getMethod()).isEqualTo(HttpMethod.GET);
+        assertThat(requestLine.getPath()).isEqualTo("/user/create");
         assertThat(requestLine.getHttpVersion()).isEqualTo("HTTP/1.1");
 
         // headers
@@ -36,7 +36,7 @@ class HttpRequestTest {
         assertThat(headers.get("Accept")).isEqualTo("*/*");
 
         // parameters
-        Map<String, String> parameters = httpRequest.getParameters();
+        Map<String, String> parameters = httpRequest.getParams();
         assertThat(parameters.get("name")).isEqualTo("jiwon");
         assertThat(parameters.get("password")).isEqualTo("1234");
         assertThat(parameters.get("email")).isEqualTo("jwkim.oa@gmail.com");
@@ -56,9 +56,9 @@ class HttpRequestTest {
         HttpRequest httpRequest = new HttpRequest(fileInputStream);
 
         // request line
-        HttpRequest.RequestLine requestLine = httpRequest.getRequestLine();
-        assertThat(requestLine.getHttpMethod()).isEqualTo("POST");
-        assertThat(requestLine.getUri()).isEqualTo("/user/create");
+        RequestLine requestLine = httpRequest.getRequestLine();
+        assertThat(requestLine.getMethod()).isEqualTo(HttpMethod.POST);
+        assertThat(requestLine.getPath()).isEqualTo("/user/create");
         assertThat(requestLine.getHttpVersion()).isEqualTo("HTTP/1.1");
 
         // headers
@@ -69,7 +69,7 @@ class HttpRequestTest {
         assertThat(headers.get("Content-Length")).isEqualTo("49");
 
         // parameters
-        Map<String, String> parameters = httpRequest.getParameters();
+        Map<String, String> parameters = httpRequest.getParams();
         assertThat(parameters.get("name")).isEqualTo("jiwon");
         assertThat(parameters.get("password")).isEqualTo("1234");
         assertThat(parameters.get("email")).isEqualTo("jwkim.oa@gmail.com");
