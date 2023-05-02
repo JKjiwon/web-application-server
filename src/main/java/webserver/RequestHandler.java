@@ -56,8 +56,7 @@ public class RequestHandler extends Thread {
                     response302LoginHeader(dos, "/user/login_failed.html", false);
                 }
             } else if ("/user/list".equals(requestLine.getPath())) {
-                Map<String, String> cookies = HttpRequestUtils.parseCookies(httpRequest.getHeaders().get("Cookie"));
-                boolean logined = isLogin(cookies.get("logined"));
+                boolean logined = isLogin(httpRequest.getCookies().get("logined"));
 
                 if (!logined) {
                     DataOutputStream dos = new DataOutputStream(out);

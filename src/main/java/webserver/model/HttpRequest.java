@@ -1,5 +1,6 @@
 package webserver.model;
 
+import com.sun.xml.internal.bind.v2.TODO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.HttpRequestUtils;
@@ -23,6 +24,7 @@ public class HttpRequest {
 
     private Map<String, String> params = new HashMap<>();
 
+    Map<String, String> cookies = new HashMap<>();
 
     public HttpRequest(InputStream in) throws IOException {
         try {
@@ -39,6 +41,10 @@ public class HttpRequest {
                 log.debug("header: {}", line);
                 HttpRequestUtils.Pair pair = HttpRequestUtils.parseHeader(line);
                 headers.put(pair.getKey(), pair.getValue());
+
+                if (pair.getKey().equals("Cookie")) {
+                    cookies = HttpRequestUtils.parseCookies(pair.getValue());
+                }
             }
 
             if (requestLine.getMethod().isPost()) {
@@ -62,5 +68,9 @@ public class HttpRequest {
 
     public Map<String, String> getParams() {
         return params;
+    }
+
+    public Map<String, String> getCookies() {
+        return cookies;
     }
 }
