@@ -41,7 +41,7 @@ public class HttpRequest {
                 headers.put(pair.getKey(), pair.getValue());
             }
 
-            if (requestLine.getMethod().equals(HttpMethod.POST)) {
+            if (requestLine.getMethod().isPost()) {
                 int contentLength = Integer.parseInt(headers.get("Content-Length"));
                 params = HttpRequestUtils.parseQueryString(IOUtils.readData(br, contentLength));
             } else {

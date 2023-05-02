@@ -22,10 +22,10 @@ public class RequestLine {
         if (tokens.length != 3) {
             throw new IllegalArgumentException(requestLine + "이 형식에 맞지 않습니다.");
         }
-        method = HttpMethod.valueOf(tokens[0]);
         httpVersion = tokens[2];
 
-        if (method.equals(HttpMethod.POST)) {
+        method = HttpMethod.valueOf(tokens[0]);
+        if (method.isPost()) {
             path = tokens[1];
             return;
         }
