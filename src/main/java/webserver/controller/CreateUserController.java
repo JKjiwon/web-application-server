@@ -10,13 +10,13 @@ import webserver.model.HttpResponse;
 
 import java.util.Map;
 
-public class UserCreateController extends AbstractController {
+public class CreateUserController extends AbstractController {
 
-    private static final Logger log = LoggerFactory.getLogger(UserCreateController.class);
+    private static final Logger log = LoggerFactory.getLogger(CreateUserController.class);
 
     @Override
     protected void doPost(HttpRequest httpRequest, HttpResponse httpResponse) {
-        log.info("call [{}]", UserCreateController.class.getName());
+        log.info("call [{}]", CreateUserController.class.getName());
         Map<String, String> params = httpRequest.getParams();
         User user = new User(params.get("userId"),
                 params.get("password"),

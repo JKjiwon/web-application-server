@@ -8,7 +8,7 @@ import webserver.model.HttpResponse;
 
 public class ForwardController extends AbstractController {
 
-    private static final Logger log = LoggerFactory.getLogger(UserCreateController.class);
+    private static final Logger log = LoggerFactory.getLogger(CreateUserController.class);
 
     @Override
     protected void doGet(HttpRequest httpRequest, HttpResponse httpResponse) {

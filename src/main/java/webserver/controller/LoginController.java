@@ -10,13 +10,13 @@ import webserver.model.HttpResponse;
 
 import java.util.Map;
 
-public class UserLoginController extends AbstractController {
+public class LoginController extends AbstractController {
 
-    private static final Logger log = LoggerFactory.getLogger(UserLoginController.class);
+    private static final Logger log = LoggerFactory.getLogger(LoginController.class);
 
     @Override
     protected void doPost(HttpRequest httpRequest, HttpResponse httpResponse) {
-        log.info("call [{}]", UserLoginController.class.getName());
+        log.info("call [{}]", LoginController.class.getName());
         Map<String, String> params = httpRequest.getParams();
         User user = DataBase.findUserById(params.get("userId"));
         if (user == null) {

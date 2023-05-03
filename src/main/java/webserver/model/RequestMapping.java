@@ -1,9 +1,9 @@
 package webserver.model;
 
 import webserver.controller.ForwardController;
-import webserver.controller.UserCreateController;
-import webserver.controller.UserListController;
-import webserver.controller.UserLoginController;
+import webserver.controller.CreateUserController;
+import webserver.controller.ListUserController;
+import webserver.controller.LoginController;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,9 +13,9 @@ public class RequestMapping {
     private static Map<String, Controller> controllers = new HashMap<>();
 
     static {
-        controllers.put("/user/create", new UserCreateController());
-        controllers.put("/user/login", new UserLoginController());
-        controllers.put("/user/list", new UserListController());
+        controllers.put("/user/create", new CreateUserController());
+        controllers.put("/user/login", new LoginController());
+        controllers.put("/user/list", new ListUserController());
     }
 
     public static Controller getController(String path) {

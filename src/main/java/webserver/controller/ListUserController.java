@@ -10,12 +10,12 @@ import webserver.model.HttpResponse;
 
 import java.util.Collection;
 
-public class UserListController extends AbstractController {
-    private static final Logger log = LoggerFactory.getLogger(UserListController.class);
+public class ListUserController extends AbstractController {
+    private static final Logger log = LoggerFactory.getLogger(ListUserController.class);
 
     @Override
     protected void doGet(HttpRequest httpRequest, HttpResponse httpResponse) {
-        log.info("call [{}]", UserListController.class.getName());
+        log.info("call [{}]", ListUserController.class.getName());
         boolean logined = isLogin(httpRequest.getCookies().get("logined"));
         if (!logined) {
             httpResponse.senRedirect("/user/login.html");
