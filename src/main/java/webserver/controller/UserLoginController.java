@@ -20,15 +20,15 @@ public class UserLoginController extends AbstractController {
         Map<String, String> params = httpRequest.getParams();
         User user = DataBase.findUserById(params.get("userId"));
         if (user == null) {
-            httpResponse.addHeader("Set-Cookie", "logined=" + false);
+            httpResponse.addHeader("Set-Cookie", "logined=false");
             httpResponse.senRedirect("/user/login_failed.html");
             return;
         }
         if (user.getPassword() != null && user.getPassword().equals(params.get("password"))) {
-            httpResponse.addHeader("Set-Cookie", "logined=" + true);
+            httpResponse.addHeader("Set-Cookie", "logined=true");
             httpResponse.senRedirect("/index.html");
         } else {
-            httpResponse.addHeader("Set-Cookie", "logined=" + false);
+            httpResponse.addHeader("Set-Cookie", "logined=false");
             httpResponse.senRedirect("/user/login_failed.html");
         }
     }
