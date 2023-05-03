@@ -14,6 +14,13 @@ public class ForwardController extends AbstractController {
     protected void doGet(HttpRequest httpRequest, HttpResponse httpResponse) {
         String path = httpRequest.getRequestLine().getPath();
         log.info("call path [{}]", path);
-        httpResponse.forward(path);
+        httpResponse.forward(getDefaultPath(path));
+    }
+
+    private String getDefaultPath(String path) {
+        if (path.equals("/")) {
+            return "/index.html";
+        }
+        return path;
     }
 }
