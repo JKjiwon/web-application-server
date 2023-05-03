@@ -43,7 +43,7 @@ public class HttpResponse {
         }
     }
 
-    public void forwardBody(String strBody) throws IOException {
+    public void forwardBody(String strBody) {
         headers.put("Content-Type", ContentType.HTML.getValue());
         byte[] body = strBody.getBytes();
         response200Header(body.length);
