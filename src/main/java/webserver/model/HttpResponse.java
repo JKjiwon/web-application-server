@@ -35,10 +35,19 @@ public class HttpResponse {
             headers.put("Content-Type", ContentType.HTML.getValue());
         }
         try {
-            forwardBody(path);
+            byte[] body = Files.readAllBytes(new File("./webapp" + path).toPath());
+            response200Header(body.length);
+            responseBody(body);
         } catch (IOException e) {
             log.error(e.getMessage());
         }
+    }
+
+    public void forwardBody(String strBody) throws IOException {
+        headers.put("Content-Type", ContentType.HTML.getValue());
+        byte[] body = strBody.getBytes();
+        response200Header(body.length);
+        responseBody(body);
     }
 
     public void senRedirect(String path) {
@@ -54,12 +63,6 @@ public class HttpResponse {
         } catch (IOException e) {
             log.error(e.getMessage());
         }
-    }
-
-    private void forwardBody(String path) throws IOException {
-        byte[] body = Files.readAllBytes(new File("./webapp" + path).toPath());
-        response200Header(body.length);
-        responseBody(body);
     }
 
     private void responseBody(byte[] body) {

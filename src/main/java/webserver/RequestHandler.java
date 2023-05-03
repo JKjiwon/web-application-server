@@ -4,13 +4,14 @@ import db.DataBase;
 import model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import util.HttpRequestUtils;
 import webserver.model.HttpRequest;
+import webserver.model.HttpResponse;
 import webserver.model.RequestLine;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.Socket;
-import java.nio.file.Files;
 import java.util.Collection;
 import java.util.Map;
 
@@ -29,6 +30,7 @@ public class RequestHandler extends Thread {
 
         try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()) {
             HttpRequest httpRequest = new HttpRequest(in);
+            HttpResponse httpResponse = new HttpResponse(out);
             RequestLine requestLine = httpRequest.getRequestLine();
 
             if ("/user/create".equals(requestLine.getPath())) {
@@ -38,29 +40,26 @@ public class RequestHandler extends Thread {
                         params.get("name"),
                         params.get("email"));
                 DataBase.addUser(user);
-                DataOutputStream dos = new DataOutputStream(out);
-                response302Header(dos, "/index.html");
+                httpResponse.senRedirect("/index.html");
             } else if ("/user/login".equals(requestLine.getPath())) {
                 Map<String, String> params = httpRequest.getParams();
                 User user = DataBase.findUserById(params.get("userId"));
                 if (user == null) {
-                    DataOutputStream dos = new DataOutputStream(out);
-                    response302LoginHeader(dos, "/user/login_failed.html", false);
+                    httpResponse.addHeader("Set-Cookie", "logined=" + false);
+                    httpResponse.senRedirect("/user/login_failed.html");
                     return;
                 }
                 if (user.getPassword() != null && user.getPassword().equals(params.get("password"))) {
-                    DataOutputStream dos = new DataOutputStream(out);
-                    response302LoginHeader(dos, "/index.html", true);
+                    httpResponse.addHeader("Set-Cookie", "logined=" + true);
+                    httpResponse.senRedirect("/index.html");
                 } else {
-                    DataOutputStream dos = new DataOutputStream(out);
-                    response302LoginHeader(dos, "/user/login_failed.html", false);
+                    httpResponse.addHeader("Set-Cookie", "logined=" + false);
+                    httpResponse.senRedirect("/user/login_failed.html");
                 }
             } else if ("/user/list".equals(requestLine.getPath())) {
                 boolean logined = isLogin(httpRequest.getCookies().get("logined"));
-
                 if (!logined) {
-                    DataOutputStream dos = new DataOutputStream(out);
-                    response302Header(dos, "/user/login.html");
+                    httpResponse.senRedirect("/user/login.html");
                     return;
                 }
 
@@ -76,30 +75,11 @@ public class RequestHandler extends Thread {
                             .append("</tr>");
                 }
                 sb.append("</table>");
-                byte[] body = sb.toString().getBytes();
-                DataOutputStream dos = new DataOutputStream(out);
-                response200Header(dos, body.length);
-                responseBody(dos, body);
-            } else if (requestLine.getPath().endsWith(".css")) {
-                DataOutputStream dos = new DataOutputStream(out);
-                byte[] body = Files.readAllBytes(new File("./webapp" + requestLine.getPath()).toPath());
-                response200CssHeader(dos, body.length);
-                responseBody(dos, body);
+                httpResponse.forwardBody(sb.toString());
             } else {
-                responseResource(out, requestLine.getPath());
+                httpResponse.forward(requestLine.getPath());
             }
 
-        } catch (IOException e) {
-            log.error(e.getMessage());
-        }
-    }
-
-    private void response200CssHeader(DataOutputStream dos, int lengthOfBodyContent) {
-        try {
-            dos.writeBytes("HTTP/1.1 200 OK \r\n");
-            dos.writeBytes("Content-Type: text/css \r\n");
-            dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
-            dos.writeBytes("\r\n");
         } catch (IOException e) {
             log.error(e.getMessage());
         }
@@ -110,53 +90,5 @@ public class RequestHandler extends Thread {
             return false;
         }
         return Boolean.parseBoolean(cookieValue);
-    }
-
-    private void responseResource(OutputStream out, String url) throws IOException {
-        DataOutputStream dos = new DataOutputStream(out);
-        byte[] body = Files.readAllBytes(new File("./webapp" + url).toPath());
-        response200Header(dos, body.length);
-        responseBody(dos, body);
-    }
-
-    private void response200Header(DataOutputStream dos, int lengthOfBodyContent) {
-        try {
-            dos.writeBytes("HTTP/1.1 200 OK \r\n");
-            dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
-            dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
-            dos.writeBytes("\r\n");
-        } catch (IOException e) {
-            log.error(e.getMessage());
-        }
-    }
-
-    private void response302LoginHeader(DataOutputStream dos, String url, boolean login) {
-        try {
-            dos.writeBytes("HTTP/1.1 302 Redirect \r\n");
-            dos.writeBytes("Set-Cookie: logined=" + login + " \r\n");
-            dos.writeBytes("Location:" + url + "\r\n");
-            dos.writeBytes("\r\n");
-        } catch (IOException e) {
-            log.error(e.getMessage());
-        }
-    }
-
-    private void response302Header(DataOutputStream dos, String url) {
-        try {
-            dos.writeBytes("HTTP/1.1 302 Redirect \r\n");
-            dos.writeBytes("Location:" + url + "\r\n");
-            dos.writeBytes("\r\n");
-        } catch (IOException e) {
-            log.error(e.getMessage());
-        }
-    }
-
-    private void responseBody(DataOutputStream dos, byte[] body) {
-        try {
-            dos.write(body, 0, body.length);
-            dos.flush();
-        } catch (IOException e) {
-            log.error(e.getMessage());
-        }
     }
 }
