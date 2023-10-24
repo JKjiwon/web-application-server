@@ -37,6 +37,8 @@ public class RequestHandler extends Thread {
             if (line == null) {
                 return;
             }
+
+            log.debug("[Request Line] {}", line);
             String[] requestLine = line.split(" ");
 
             // request header
@@ -106,7 +108,7 @@ public class RequestHandler extends Thread {
 
     private byte[] responseUsers(List<User> users) {
         StringBuilder sb = new StringBuilder();
-        sb.append("<table>");
+        sb.append("<table border='1'>");
         sb.append("<tr>");
         sb.append("<th>userId</th>");
         sb.append("<th>name</th>");
