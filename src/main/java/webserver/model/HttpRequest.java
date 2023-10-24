@@ -1,5 +1,7 @@
 package webserver.model;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import util.HttpRequestUtils;
 import util.IOUtils;
 
@@ -11,6 +13,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class HttpRequest {
+
+    private static final Logger log = LoggerFactory.getLogger(HttpRequest.class);
 
     private HttpMethod method;
     private String path;
@@ -32,6 +36,8 @@ public class HttpRequest {
             int contentLength = Integer.parseInt(getHeader("Content-Length"));
             parameters.putAll(HttpRequestUtils.parseQueryString(IOUtils.readData(br, contentLength)));
         }
+
+        log.debug("[HttpRequest] {}", this);
     }
 
     public HttpMethod getMethod() {
@@ -69,5 +75,15 @@ public class HttpRequest {
         } else {
             path = requestLineToken[1];
         }
+    }
+
+    @Override
+    public String toString() {
+        return "HttpRequest{" +
+                "method=" + method +
+                ", path='" + path + '\'' +
+                ", headers=" + headers +
+                ", parameters=" + parameters +
+                '}';
     }
 }
