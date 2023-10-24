@@ -5,10 +5,15 @@ import model.User;
 import webserver.model.HttpRequest;
 import webserver.model.HttpResponse;
 
-public class LoginController implements Controller {
+public class LoginController extends AbstractController {
 
     @Override
-    public void service(HttpRequest request, HttpResponse response) {
+    protected void doGet(HttpRequest request, HttpResponse response) {
+        throw new RuntimeException("Method Not Allowed");
+    }
+
+    @Override
+    protected void doPost(HttpRequest request, HttpResponse response) {
         String userId = request.getParameter("userId");
         String password = request.getParameter("password");
         User user = DataBase.findUserById(userId);

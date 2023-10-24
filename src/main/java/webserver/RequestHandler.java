@@ -5,7 +5,6 @@ import controller.GetUsersController;
 import controller.LoginController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import webserver.model.HttpMethod;
 import webserver.model.HttpRequest;
 import webserver.model.HttpResponse;
 
@@ -33,13 +32,13 @@ public class RequestHandler extends Thread {
             HttpRequest request = new HttpRequest(in);
             HttpResponse response = new HttpResponse(out);
 
-            if (request.getMethod().equals(HttpMethod.POST) && request.getPath().startsWith("/user/create")) {
+            if (request.getPath().startsWith("/user/create")) {
                 CreateUserController controller = new CreateUserController();
                 controller.service(request, response);
-            } else if (request.getMethod().equals(HttpMethod.POST) && request.getPath().equals("/user/login")) {
+            } else if (request.getPath().equals("/user/login")) {
                 LoginController controller = new LoginController();
                 controller.service(request, response);
-            } else if (request.getMethod().equals(HttpMethod.GET) && request.getPath().equals("/user/list")) {
+            } else if (request.getPath().equals("/user/list")) {
                 GetUsersController controller = new GetUsersController();
                 controller.service(request, response);
             } else {

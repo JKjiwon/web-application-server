@@ -8,10 +8,10 @@ import webserver.model.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GetUsersController implements Controller {
+public class GetUsersController extends AbstractController {
 
     @Override
-    public void service(HttpRequest request, HttpResponse response) {
+    protected void doGet(HttpRequest request, HttpResponse response) {
         if (!isLogined(request)) {
             response.sendRedirect("/index.html");
             return;
@@ -19,6 +19,11 @@ public class GetUsersController implements Controller {
         List<User> users = new ArrayList<>(DataBase.findAll());
         byte[] body = responseUsers(users);
         response.forward(body);
+    }
+
+    @Override
+    protected void doPost(HttpRequest request, HttpResponse response) {
+        throw new RuntimeException("Method Not Allowed");
     }
 
     private boolean isLogined(HttpRequest request) {
