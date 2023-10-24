@@ -22,22 +22,26 @@ public class HttpRequest {
     private Map<String, String> parameters = new HashMap<>();
 
     public HttpRequest(InputStream in) throws IOException {
-        BufferedReader br = new BufferedReader(new InputStreamReader(in));
+        try {
+            BufferedReader br = new BufferedReader(new InputStreamReader(in));
 
-        String line = br.readLine();
-        if (line == null) {
-            return;
+            String line = br.readLine();
+            if (line == null) {
+                return;
+            }
+
+            processRequestLine(line);
+            processHeaders(br);
+
+            if (method.equals(HttpMethod.POST)) {
+                int contentLength = Integer.parseInt(getHeader("Content-Length"));
+                parameters.putAll(HttpRequestUtils.parseQueryString(IOUtils.readData(br, contentLength)));
+            }
+
+            log.debug("[HttpRequest] {}", this);
+        } catch (IOException e) {
+            log.error(e.getMessage());
         }
-
-        processRequestLine(line);
-        processHeaders(br);
-
-        if (method.equals(HttpMethod.POST)) {
-            int contentLength = Integer.parseInt(getHeader("Content-Length"));
-            parameters.putAll(HttpRequestUtils.parseQueryString(IOUtils.readData(br, contentLength)));
-        }
-
-        log.debug("[HttpRequest] {}", this);
     }
 
     public HttpMethod getMethod() {
