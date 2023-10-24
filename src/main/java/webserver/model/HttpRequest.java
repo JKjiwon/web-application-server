@@ -60,6 +60,12 @@ public class HttpRequest {
         return parameters.get(paramKey);
     }
 
+    public String getCookie(String key) {
+        String cookies = getHeader("Cookie");
+        Map<String, String> cookieMap = HttpRequestUtils.parseCookies(cookies);
+        return cookieMap.get(key);
+    }
+
     private void processHeaders(BufferedReader br) throws IOException {
         String line;
         while ((line = br.readLine()) != null && !line.equals("")) {
