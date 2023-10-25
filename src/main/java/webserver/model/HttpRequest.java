@@ -63,10 +63,10 @@ public class HttpRequest {
         return parameters.get(name);
     }
 
-    public String getCookie(String key) {
+    public String getCookie(String name) {
         String cookies = getHeader("Cookie");
         Map<String, String> cookieMap = HttpRequestUtils.parseCookies(cookies);
-        return cookieMap.get(key);
+        return cookieMap.get(name);
     }
 
     private void processHeaders(BufferedReader br) throws IOException {
