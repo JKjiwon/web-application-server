@@ -1,12 +1,11 @@
 package webserver;
 
-import controller.CreateUserController;
-import controller.GetUsersController;
-import controller.LoginController;
+import controller.Controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import webserver.model.HttpRequest;
 import webserver.model.HttpResponse;
+import webserver.model.RequestMapping;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,20 +31,24 @@ public class RequestHandler extends Thread {
             HttpRequest request = new HttpRequest(in);
             HttpResponse response = new HttpResponse(out);
 
-            if (request.getPath().startsWith("/user/create")) {
-                CreateUserController controller = new CreateUserController();
-                controller.service(request, response);
-            } else if (request.getPath().equals("/user/login")) {
-                LoginController controller = new LoginController();
-                controller.service(request, response);
-            } else if (request.getPath().equals("/user/list")) {
-                GetUsersController controller = new GetUsersController();
-                controller.service(request, response);
+            Controller controller = RequestMapping.getController(request.getPath());
+
+            if (controller == null) {
+                String path = getDefaultPath(request.getPath());
+                response.forward(path);
             } else {
-                response.forward(request.getPath());
+                controller.service(request, response);
             }
+
         } catch (IOException e) {
             log.error(e.getMessage());
         }
+    }
+
+    private String getDefaultPath(String path) {
+        if (path.equals("/")) {
+            return "/index.html";
+        }
+        return path;
     }
 }
