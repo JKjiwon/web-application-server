@@ -16,8 +16,8 @@ public class HttpRequest {
 
     private static final Logger log = LoggerFactory.getLogger(HttpRequest.class);
 
-    private HttpMethod method;
-    private String path;
+    private RequestLine requestLine;
+
     private Map<String, String> headers = new HashMap<>();
     private Map<String, String> parameters = new HashMap<>();
 
@@ -30,12 +30,15 @@ public class HttpRequest {
                 return;
             }
 
-            processRequestLine(line);
+            requestLine = new RequestLine(line);
+
             processHeaders(br);
 
-            if (method.equals(HttpMethod.POST)) {
+            if (getMethod().isPost()) {
                 int contentLength = Integer.parseInt(getHeader("Content-Length"));
-                parameters.putAll(HttpRequestUtils.parseQueryString(IOUtils.readData(br, contentLength)));
+                parameters = HttpRequestUtils.parseQueryString(IOUtils.readData(br, contentLength));
+            } else {
+                parameters = requestLine.getParameters();
             }
 
             log.debug("[HttpRequest] {}", this);
@@ -45,11 +48,11 @@ public class HttpRequest {
     }
 
     public HttpMethod getMethod() {
-        return method;
+        return requestLine.getMethod();
     }
 
     public String getPath() {
-        return path;
+        return requestLine.getPath();
     }
 
     public String getHeader(String name) {
@@ -74,24 +77,11 @@ public class HttpRequest {
         }
     }
 
-    private void processRequestLine(String requestLine) {
-        String[] requestLineToken = requestLine.split(" ");
-        method = HttpMethod.valueOf(requestLineToken[0]);
-        if (requestLineToken[1].contains("?")) {
-            int index = requestLineToken[1].indexOf("?");
-            path = requestLineToken[1].substring(0, index);
-            String queryString = requestLineToken[1].substring(index + 1);
-            parameters = HttpRequestUtils.parseQueryString(queryString);
-        } else {
-            path = requestLineToken[1];
-        }
-    }
-
     @Override
     public String toString() {
         return "HttpRequest{" +
-                "method=" + method +
-                ", path='" + path + '\'' +
+                "method=" + requestLine.getMethod() +
+                ", path='" + requestLine.getPath() + '\'' +
                 ", headers=" + headers +
                 ", parameters=" + parameters +
                 '}';
