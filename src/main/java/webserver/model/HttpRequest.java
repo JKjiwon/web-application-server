@@ -52,12 +52,12 @@ public class HttpRequest {
         return path;
     }
 
-    public String getHeader(String headerKey) {
-        return headers.get(headerKey);
+    public String getHeader(String name) {
+        return headers.get(name);
     }
 
-    public String getParameter(String paramKey) {
-        return parameters.get(paramKey);
+    public String getParameter(String name) {
+        return parameters.get(name);
     }
 
     public String getCookie(String key) {
