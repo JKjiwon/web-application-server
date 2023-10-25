@@ -29,21 +29,18 @@ public class HttpResponse {
         try {
             byte[] body = Files.readAllBytes(new File(HTML_FILE_PATH + url).toPath());
 
-            dos.writeBytes("HTTP/1.1 200 OK\r\n");
-
             if (url.endsWith(".css")) {
-                dos.writeBytes("Content-Type: text/css\r\n");
+                headers.put("Content-Type", "text/css");
+            } else if (url.endsWith(".js")) {
+                headers.put("Content-Type", "text/javascript");
             } else {
-                dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
+                headers.put("Content-Type", "text/html;charset=utf-8");
             }
+            headers.put("Content-Length", String.valueOf(body.length));
 
-            processHeaders();
+            response200Header();
+            responseBody(body);
 
-            dos.writeBytes("Content-Length: " + body.length + "\r\n");
-            dos.writeBytes("\r\n");
-
-            dos.write(body, 0, body.length);
-            dos.flush();
         } catch (IOException e) {
             log.error(e.getMessage());
         }
@@ -51,13 +48,11 @@ public class HttpResponse {
 
     public void forward(byte[] body) {
         try {
-            dos.writeBytes("HTTP/1.1 200 OK\r\n");
-            processHeaders();
-            dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
-            dos.writeBytes("Content-Length: " + body.length + "\r\n");
-            dos.writeBytes("\r\n");
-            dos.write(body, 0, body.length);
-            dos.flush();
+            headers.put("Content-Type", "text/html;charset=utf-8");
+            headers.put("Content-Length", String.valueOf(body.length));
+            response200Header();
+            responseBody(body);
+
         } catch (IOException e) {
             log.error(e.getMessage());
         }
@@ -67,8 +62,9 @@ public class HttpResponse {
         try {
             dos.writeBytes("HTTP/1.1 302 Found\r\n");
             dos.writeBytes("Location: " + url + "\r\n");
-
             processHeaders();
+
+            dos.writeBytes("\r\n");
             dos.flush();
         } catch (IOException e) {
             log.error(e.getMessage());
@@ -91,6 +87,17 @@ public class HttpResponse {
         }
 
         addHeader("Set-Cookie", cookie);
+    }
+
+    private void response200Header() throws IOException {
+        dos.writeBytes("HTTP/1.1 200 OK\r\n");
+        processHeaders();
+        dos.writeBytes("\r\n");
+    }
+
+    private void responseBody(byte[] body) throws IOException {
+        dos.write(body, 0, body.length);
+        dos.flush();
     }
 
     private void processHeaders() throws IOException {
