@@ -1,0 +1,7 @@
+POST /user/create HTTP/1.1
+Host: localhost:8080
+Connection: keep-alive
+Content-Length: 65
+Accept: */*
+
+userId=jwkim.oa&password=1234&name=JiWon&email=jwkim.oa@gmail.com
