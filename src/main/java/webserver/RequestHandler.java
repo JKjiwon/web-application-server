@@ -11,10 +11,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.UUID;
 
 public class RequestHandler extends Thread {
-    private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
 
+    private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
     private Socket connection;
 
     public RequestHandler(Socket connectionSocket) {
@@ -31,8 +32,12 @@ public class RequestHandler extends Thread {
             HttpRequest request = new HttpRequest(in);
             HttpResponse response = new HttpResponse(out);
 
-            Controller controller = RequestMapping.getController(request.getPath());
+            // 세션 ID 생성
+            if (request.getCookie("JSESSIONID") == null) {
+                response.setCookie("JSESSIONID", UUID.randomUUID().toString());
+            }
 
+            Controller controller = RequestMapping.getController(request.getPath());
             if (controller == null) {
                 String path = getDefaultPath(request.getPath());
                 response.forward(path);
