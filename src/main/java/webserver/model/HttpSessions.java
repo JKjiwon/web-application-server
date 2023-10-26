@@ -5,6 +5,7 @@ import java.util.Map;
 
 public class HttpSessions {
 
+    // SessionID - Session
     private static Map<String, HttpSession> sessions = new HashMap<>();
 
     public static HttpSession getSession(String id) {

@@ -17,7 +17,6 @@ public class LoginController extends AbstractController {
     protected void doPost(HttpRequest request, HttpResponse response) {
         User user = DataBase.findUserById(request.getParameter("userId"));
 
-
         if (user == null || !user.login(request.getParameter("password"))) {
             // 로그인 실패
             response.sendRedirect("/user/login_failed.html");
