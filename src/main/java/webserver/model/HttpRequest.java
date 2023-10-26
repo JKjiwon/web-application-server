@@ -69,6 +69,10 @@ public class HttpRequest {
         return cookie.getCookie(name);
     }
 
+    public HttpSession getSession() {
+        return HttpSessions.getSession(getCookie("JSESSIONID"));
+    }
+
     private void processHeaders(BufferedReader br) throws IOException {
         String line;
         while ((line = br.readLine()) != null && !line.equals("")) {

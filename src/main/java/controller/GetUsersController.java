@@ -2,17 +2,22 @@ package controller;
 
 import db.DataBase;
 import model.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import webserver.model.HttpRequest;
 import webserver.model.HttpResponse;
+import webserver.model.HttpSession;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class GetUsersController extends AbstractController {
 
+    private static final Logger log = LoggerFactory.getLogger(GetUsersController.class);
+
     @Override
     protected void doGet(HttpRequest request, HttpResponse response) {
-        if (!isLogined(request)) {
+        if (!isLogined(request.getSession())) {
             response.sendRedirect("/index.html");
             return;
         }
@@ -26,14 +31,8 @@ public class GetUsersController extends AbstractController {
         throw new RuntimeException("Method Not Allowed");
     }
 
-    private boolean isLogined(HttpRequest request) {
-        String logined = request.getCookie("logined");
-
-        if (logined == null) {
-            return false;
-        }
-
-        return Boolean.parseBoolean(logined);
+    private boolean isLogined(HttpSession session) {
+        return session.getAttribute("user") != null;
     }
 
     private byte[] responseUsers(List<User> users) {

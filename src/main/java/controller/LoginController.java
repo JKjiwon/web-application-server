@@ -4,6 +4,7 @@ import db.DataBase;
 import model.User;
 import webserver.model.HttpRequest;
 import webserver.model.HttpResponse;
+import webserver.model.HttpSession;
 
 public class LoginController extends AbstractController {
 
@@ -14,18 +15,17 @@ public class LoginController extends AbstractController {
 
     @Override
     protected void doPost(HttpRequest request, HttpResponse response) {
-        String userId = request.getParameter("userId");
-        String password = request.getParameter("password");
-        User user = DataBase.findUserById(userId);
+        User user = DataBase.findUserById(request.getParameter("userId"));
 
-        if (user == null || !user.getPassword().equals(password)) {
+
+        if (user == null || !user.login(request.getParameter("password"))) {
             // 로그인 실패
-            response.setCookie("logined", "false");
             response.sendRedirect("/user/login_failed.html");
             return;
         }
         // 로그인 성공
-        response.setCookie("logined", "true");
+        HttpSession session = request.getSession();
+        session.setAttribute("user", user);
         response.sendRedirect("/index.html");
     }
 }
