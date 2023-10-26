@@ -64,9 +64,9 @@ public class HttpRequest {
     }
 
     public String getCookie(String name) {
-        String cookies = getHeader("Cookie");
-        Map<String, String> cookieMap = HttpRequestUtils.parseCookies(cookies);
-        return cookieMap.get(name);
+        // TODO: 2023/10/26 HttpCookie 를 클래스 변수로 선언할지 고민...
+        HttpCookie cookie = new HttpCookie(getHeader("Cookie"));
+        return cookie.getCookie(name);
     }
 
     private void processHeaders(BufferedReader br) throws IOException {
