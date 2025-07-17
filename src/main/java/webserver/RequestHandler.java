@@ -1,9 +1,11 @@
 package webserver;
 
+import db.DataBase;
 import model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.HttpRequestUtils;
+import util.IOUtils;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -35,47 +37,60 @@ public class RequestHandler extends Thread {
         try (BufferedReader input = new BufferedReader(new InputStreamReader(connection.getInputStream()));
              DataOutputStream output = new DataOutputStream(connection.getOutputStream())) {
             String requestLine = input.readLine();
+            if (requestLine == null || requestLine.isEmpty()) {
+                throw new IOException("No request line received");
+            }
             String path = extractPath(requestLine);
-            byte[] body;
-            if (path.equals("/index.html")) {
-                body = Files.readAllBytes(Path.of("./webapp" + path));
-                response200Header(output, body.length);
-                responseBody(output, body);
-            } else if (path.equals("/user/form.html")) {
-                body = Files.readAllBytes(Path.of("./webapp" + path));
-                response200Header(output, body.length);
-                responseBody(output, body);
-            } else if (path.startsWith("/user/create")) {
-                Map<String, String> queryStringMap = extractQueryString(path);
-                String userId = URLDecoder.decode(queryStringMap.getOrDefault("userId", ""), UTF_8);
-                String password = URLDecoder.decode(queryStringMap.getOrDefault("password", ""), UTF_8);
-                String name = URLDecoder.decode(queryStringMap.getOrDefault("name", ""), UTF_8);
-                String email = URLDecoder.decode(queryStringMap.getOrDefault("email", ""), UTF_8);
-                User user = new User(userId, password, name, email);
-                log.info("User created! {}", user);
-            } else {
-                body = "Hello World".getBytes(UTF_8);
-                response200Header(output, body.length);
-                responseBody(output, body);
+            log.info("Path {}", path);
+
+            Map<String, String> headers = new HashMap<>();
+            String headerLine = null;
+            while (!(headerLine = input.readLine()).isEmpty()) {
+                String[] parts = headerLine.split(":");
+                headers.put(parts[0].trim(), parts[1].trim());
+                log.debug("Header {}", headerLine);
             }
 
+            if (path.equals("/index.html")) {
+                writeHtml(Files.readAllBytes(Path.of("./webapp" + path)), output);
+            } else if (path.equals("/user/form.html")) {
+                writeHtml(Files.readAllBytes(Path.of("./webapp" + path)), output);
+            } else if (path.startsWith("/user/create")) {
+                String requestBody = readRequestBody(headers, input);
+                log.info("Request Body {}", requestBody);
+                User user = createUser(requestBody);
+                DataBase.addUser(user);
+                log.info("User created! {}", user);
+            } else {
+                writeHtml("Hello World".getBytes(UTF_8), output);
+            }
         } catch (IOException e) {
             log.error(e.getMessage());
         }
     }
 
-    private Map<String, String> extractQueryString(String path) {
-        String[] parts = path.split("\\?", 2);
-        if (parts.length != 2) {
-            return new HashMap<>();
-        }
-        String queryString = parts[1];
-        return HttpRequestUtils.parseQueryString(queryString);
-    }
-
     private String extractPath(String requestLine) {
         String[] parts = requestLine.split(" ");
         return parts[1];
+    }
+
+    private void writeHtml(byte[] body, DataOutputStream output) throws IOException {
+        response200Header(output, body.length);
+        responseBody(output, body);
+    }
+
+    private String readRequestBody(Map<String, String> headers, BufferedReader input) throws IOException {
+        int contentLength = Integer.parseInt(headers.get("Content-Length"));
+        return IOUtils.readData(input, contentLength);
+    }
+
+    private User createUser(String requestBody) {
+        Map<String, String> queryStringMap = HttpRequestUtils.parseQueryString(requestBody);
+        String userId = URLDecoder.decode(queryStringMap.getOrDefault("userId", ""), UTF_8);
+        String password = URLDecoder.decode(queryStringMap.getOrDefault("password", ""), UTF_8);
+        String name = URLDecoder.decode(queryStringMap.getOrDefault("name", ""), UTF_8);
+        String email = URLDecoder.decode(queryStringMap.getOrDefault("email", ""), UTF_8);
+        return new User(userId, password, name, email);
     }
 
     private void response200Header(DataOutputStream output, int lengthOfBodyContent) {
