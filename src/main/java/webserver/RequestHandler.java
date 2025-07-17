@@ -61,9 +61,21 @@ public class RequestHandler extends Thread {
                 User user = createUser(requestBody);
                 DataBase.addUser(user);
                 log.info("User created! {}", user);
+                redirectUrl(output, "/index.html");
             } else {
                 writeHtml("Hello World".getBytes(UTF_8), output);
             }
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    private void redirectUrl(DataOutputStream output, String url) {
+        try {
+            output.writeBytes("HTTP/1.1 302 Found\r\n");
+            output.writeBytes("Location: " + url + "\r\n");
+            output.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
+            output.writeBytes("\r\n");
         } catch (IOException e) {
             log.error(e.getMessage());
         }
@@ -95,7 +107,7 @@ public class RequestHandler extends Thread {
 
     private void response200Header(DataOutputStream output, int lengthOfBodyContent) {
         try {
-            output.writeBytes("HTTP/1.1 200 OK\r\n");
+            output.writeBytes("HTTP/1.1 302 Found\r\n");
             output.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
             output.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
             output.writeBytes("\r\n");
