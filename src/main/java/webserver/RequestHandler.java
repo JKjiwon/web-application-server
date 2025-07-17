@@ -38,72 +38,91 @@ public class RequestHandler extends Thread {
 
         try (BufferedReader input = new BufferedReader(new InputStreamReader(connection.getInputStream()));
              DataOutputStream output = new DataOutputStream(connection.getOutputStream())) {
-            String requestLine = input.readLine();
-            if (requestLine == null || requestLine.isEmpty()) {
-                throw new IOException("No request line received");
-            }
-            String path = extractPath(requestLine);
-            log.info("Path {}", path);
-            String method = extractMethod(requestLine);
+            RequestLine requestLine = extractRequestLine(input);
+            Map<String, String> headers = extractHeaders(input);
 
-            Map<String, String> headers = new HashMap<>();
-            String headerLine = null;
-            while (!(headerLine = input.readLine()).isEmpty()) {
-                String[] parts = headerLine.split(":");
-                headers.put(parts[0].trim(), parts[1].trim());
-                log.debug("Header {}", headerLine);
-            }
-
-            if (method.equals("POST") && path.startsWith("/user/create")) {
+            if (requestLine.isPost() && requestLine.getPath().startsWith("/user/create")) {
                 String requestBody = readRequestBody(headers, input);
-                log.info("Request Body {}", requestBody);
+                log.debug("Request Body {}", requestBody);
                 User user = createUser(requestBody);
                 DataBase.addUser(user);
                 log.info("User created! {}", user);
                 redirectUrl(output, "/index.html");
-            } else if (method.equals("POST") && path.startsWith("/user/login")) {
+            } else if (requestLine.isPost() && requestLine.getPath().startsWith("/user/login")) {
                 String requestBody = readRequestBody(headers, input);
-                log.info("Request Body {}", requestBody);
+                log.debug("Request Body {}", requestBody);
                 boolean isLogin = login(requestBody);
                 if (isLogin) {
                     loginSuccess(output);
                     return;
                 }
                 loginFail(output);
-            } else if (path.equals("/user/list")) {
+            } else if (requestLine.getPath().equals("/user/list")) {
                 if (!isLogined(headers)) {
                     redirectUrl(output, "/index.html");
                     return;
                 }
                 writeUserList(output);
-            } else if (method.equals("GET") && path.endsWith(".css")) {
-                byte[] body = Files.readAllBytes(Path.of("./webapp" + path));
-                responseCssHeader(output, body.length);
-                responseBody(output, body);
+            } else if (requestLine.isGet() && requestLine.getPath().endsWith(".css")) {
+                writeCss(requestLine.getPath(), output);
             } else {
-                writeHtml(Files.readAllBytes(Path.of("./webapp" + path)), output);
+                writeHtml(Files.readAllBytes(Path.of("./webapp" + requestLine.getPath())), output);
             }
         } catch (IOException e) {
             log.error(e.getMessage());
         }
     }
 
-    private void responseCssHeader(DataOutputStream output, int lengthOfBodyContent) {
-        try {
-            output.writeBytes("HTTP/1.1 200 OK\r\n");
-            output.writeBytes("Content-Type: text/css;charset=utf-8\r\n");
-            output.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
-            output.writeBytes("\r\n");
-        } catch (IOException e) {
-            log.error(e.getMessage());
+    private RequestLine extractRequestLine(BufferedReader input) throws IOException {
+        String line = input.readLine();
+        if (line == null || line.isEmpty()) {
+            throw new IOException("No request line received");
         }
+        String path = extractPath(line);
+        log.debug("Path {}", path);
+        String method = extractMethod(line);
+        return new RequestLine(method, path);
+    }
+
+    private static Map<String, String> extractHeaders(BufferedReader input) throws IOException {
+        Map<String, String> headers = new HashMap<>();
+        String headerLine = null;
+        while (!(headerLine = input.readLine()).isEmpty()) {
+            String[] parts = headerLine.split(":");
+            headers.put(parts[0].trim(), parts[1].trim());
+            log.debug("Header {}", headerLine);
+        }
+        return headers;
+    }
+
+    private void writeCss(String path, DataOutputStream output) throws IOException {
+        byte[] body = Files.readAllBytes(Path.of("./webapp" + path));
+        response200Header(output, "text/css", body.length);
+        responseBody(output, body);
     }
 
     private void writeUserList(DataOutputStream output) {
         List<User> users = new ArrayList<>(DataBase.findAll());
         StringBuilder sb = makeUserTable(users);
-        response200Header(output, sb.toString().getBytes(UTF_8).length);
+        response200Header(output, "text/html", sb.toString().getBytes(UTF_8).length);
         responseBody(output, sb.toString().getBytes(UTF_8));
+    }
+
+    private void writeHtml(byte[] body, DataOutputStream output) throws IOException {
+        response200Header(output, "text/html", body.length);
+        responseBody(output, body);
+    }
+
+    private void redirectUrl(DataOutputStream output, String url) {
+        try {
+            output.writeBytes("HTTP/1.1 302 Found\r\n");
+            output.writeBytes("Location: " + url + "\r\n");
+            output.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
+            output.writeBytes("\r\n");
+            output.flush();
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
     }
 
     private StringBuilder makeUserTable(List<User> users) {
@@ -168,26 +187,9 @@ public class RequestHandler extends Thread {
         return foundUser.getPassword().equals(password);
     }
 
-    private void redirectUrl(DataOutputStream output, String url) {
-        try {
-            output.writeBytes("HTTP/1.1 302 Found\r\n");
-            output.writeBytes("Location: " + url + "\r\n");
-            output.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
-            output.writeBytes("\r\n");
-            output.flush();
-        } catch (IOException e) {
-            log.error(e.getMessage());
-        }
-    }
-
     private String extractPath(String requestLine) {
         String[] parts = requestLine.split(" ");
         return parts[1];
-    }
-
-    private void writeHtml(byte[] body, DataOutputStream output) throws IOException {
-        response200Header(output, body.length);
-        responseBody(output, body);
     }
 
     private String readRequestBody(Map<String, String> headers, BufferedReader input) throws IOException {
@@ -209,10 +211,10 @@ public class RequestHandler extends Thread {
         return cookie.getOrDefault("logined", "false").equals("true");
     }
 
-    private void response200Header(DataOutputStream output, int lengthOfBodyContent) {
+    private void response200Header(DataOutputStream output, String contentType, int lengthOfBodyContent) {
         try {
             output.writeBytes("HTTP/1.1 200 OK\r\n");
-            output.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
+            output.writeBytes("Content-Type: " + contentType + ";charset=utf-8\r\n");
             output.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
             output.writeBytes("\r\n");
         } catch (IOException e) {
