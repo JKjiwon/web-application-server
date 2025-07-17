@@ -42,6 +42,7 @@ public class RequestHandler extends Thread {
             }
             String path = extractPath(requestLine);
             log.info("Path {}", path);
+            String method = extractMethod(requestLine);
 
             Map<String, String> headers = new HashMap<>();
             String headerLine = null;
@@ -51,23 +52,67 @@ public class RequestHandler extends Thread {
                 log.debug("Header {}", headerLine);
             }
 
-            if (path.equals("/index.html")) {
-                writeHtml(Files.readAllBytes(Path.of("./webapp" + path)), output);
-            } else if (path.equals("/user/form.html")) {
-                writeHtml(Files.readAllBytes(Path.of("./webapp" + path)), output);
-            } else if (path.startsWith("/user/create")) {
+            if (method.equals("POST") && path.startsWith("/user/create")) {
                 String requestBody = readRequestBody(headers, input);
                 log.info("Request Body {}", requestBody);
                 User user = createUser(requestBody);
                 DataBase.addUser(user);
                 log.info("User created! {}", user);
                 redirectUrl(output, "/index.html");
+            } else if (method.equals("POST") && path.startsWith("/user/login")) {
+                String requestBody = readRequestBody(headers, input);
+                log.info("Request Body {}", requestBody);
+                boolean isLogin = login(requestBody);
+                if (isLogin) {
+                    loginSuccess(output);
+                    return;
+                }
+                loginFail(output);
             } else {
-                writeHtml("Hello World".getBytes(UTF_8), output);
+                writeHtml(Files.readAllBytes(Path.of("./webapp" + path)), output);
             }
         } catch (IOException e) {
             log.error(e.getMessage());
         }
+    }
+
+    private String extractMethod(String requestLine) {
+        String[] parts = requestLine.split(" ");
+        return parts[0];
+    }
+
+    private void loginSuccess(DataOutputStream output) {
+        try {
+            output.writeBytes("HTTP/1.1 302 Found\r\n");
+            output.writeBytes("Location: /index.html\r\n");
+            output.writeBytes("Set-Cookie: logined=true; Path=/\r\n");
+            output.writeBytes("\r\n");
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    private void loginFail(DataOutputStream output) {
+        try {
+            output.writeBytes("HTTP/1.1 302 Found\r\n");
+            output.writeBytes("Location: /user/login_failed.html\r\n");
+            output.writeBytes("Set-Cookie: logined=false; Path=/\r\n");
+            output.writeBytes("\r\n");
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    private boolean login(String requestBody) {
+        Map<String, String> userInfos = HttpRequestUtils.parseQueryString(requestBody);
+        String userId = URLDecoder.decode(userInfos.getOrDefault("userId", ""), UTF_8);
+        String password = URLDecoder.decode(userInfos.getOrDefault("password", ""), UTF_8);
+
+        User foundUser = DataBase.findUserById(userId);
+        if (foundUser == null) {
+            return false;
+        }
+        return foundUser.getPassword().equals(password);
     }
 
     private void redirectUrl(DataOutputStream output, String url) {
@@ -107,7 +152,7 @@ public class RequestHandler extends Thread {
 
     private void response200Header(DataOutputStream output, int lengthOfBodyContent) {
         try {
-            output.writeBytes("HTTP/1.1 302 Found\r\n");
+            output.writeBytes("HTTP/1.1 200 OK\r\n");
             output.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
             output.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
             output.writeBytes("\r\n");
