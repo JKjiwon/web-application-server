@@ -76,9 +76,24 @@ public class RequestHandler extends Thread {
                     return;
                 }
                 writeUserList(output);
+            } else if (method.equals("GET") && path.endsWith(".css")) {
+                byte[] body = Files.readAllBytes(Path.of("./webapp" + path));
+                responseCssHeader(output, body.length);
+                responseBody(output, body);
             } else {
                 writeHtml(Files.readAllBytes(Path.of("./webapp" + path)), output);
             }
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    private void responseCssHeader(DataOutputStream output, int lengthOfBodyContent) {
+        try {
+            output.writeBytes("HTTP/1.1 200 OK\r\n");
+            output.writeBytes("Content-Type: text/css;charset=utf-8\r\n");
+            output.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
+            output.writeBytes("\r\n");
         } catch (IOException e) {
             log.error(e.getMessage());
         }
@@ -123,6 +138,7 @@ public class RequestHandler extends Thread {
             output.writeBytes("Location: /index.html\r\n");
             output.writeBytes("Set-Cookie: logined=true; Path=/\r\n");
             output.writeBytes("\r\n");
+            output.flush();
         } catch (IOException e) {
             log.error(e.getMessage());
         }
@@ -134,6 +150,7 @@ public class RequestHandler extends Thread {
             output.writeBytes("Location: /user/login_failed.html\r\n");
             output.writeBytes("Set-Cookie: logined=false; Path=/\r\n");
             output.writeBytes("\r\n");
+            output.flush();
         } catch (IOException e) {
             log.error(e.getMessage());
         }
@@ -157,6 +174,7 @@ public class RequestHandler extends Thread {
             output.writeBytes("Location: " + url + "\r\n");
             output.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
             output.writeBytes("\r\n");
+            output.flush();
         } catch (IOException e) {
             log.error(e.getMessage());
         }
