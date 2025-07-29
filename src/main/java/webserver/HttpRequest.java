@@ -14,7 +14,7 @@ public class HttpRequest {
     private static final Logger log = LoggerFactory.getLogger(HttpRequest.class);
     private static final String APPLICATION_FORM_URLENCODED_VALUE = "application/x-www-form-urlencoded";
 
-    private final RequestLineV2 requestLine;
+    private final RequestLine requestLine;
     private final Map<String, String> headers;
     private final Map<String, String> parameters = new HashMap<>();
     private final Map<String, String> cookies = new HashMap<>();
@@ -56,9 +56,9 @@ public class HttpRequest {
         return requestLine.getPath();
     }
 
-    private RequestLineV2 extractRequestLine(BufferedReader br) throws IOException {
+    private RequestLine extractRequestLine(BufferedReader br) throws IOException {
         String line = br.readLine();
-        return new RequestLineV2(line);
+        return new RequestLine(line);
     }
 
     private Map<String, String> extractRequestHeader(BufferedReader br) throws IOException {

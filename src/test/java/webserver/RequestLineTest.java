@@ -9,12 +9,12 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class RequestLineV2Test {
+class RequestLineTest {
 
     @Test
     @DisplayName("생성자로 들어오는 값이 Null이면 IOException 발생")
     public void nullLine() {
-        assertThatThrownBy(() -> new RequestLineV2(null))
+        assertThatThrownBy(() -> new RequestLine(null))
                 .isInstanceOf(IOException.class)
                 .hasMessage("EOF: RequestLine isn't received");
     }
@@ -22,7 +22,7 @@ class RequestLineV2Test {
     @Test
     @DisplayName("생성자로 잘못된 형식의 값이 들어오면 IOException 발생")
     public void invalidRequestLine() {
-        assertThatThrownBy(() -> new RequestLineV2("GET"))
+        assertThatThrownBy(() -> new RequestLine("GET"))
                 .isInstanceOf(IOException.class)
                 .hasMessage("Invalid RequestLine");
     }
@@ -30,7 +30,7 @@ class RequestLineV2Test {
     @Test
     @DisplayName("RequestLine 생성")
     public void create() throws IOException {
-        RequestLineV2 requestLine = new RequestLineV2("GET /index.html HTTP/1.1");
+        RequestLine requestLine = new RequestLine("GET /index.html HTTP/1.1");
         assertThat(requestLine.getMethod()).isEqualTo("GET");
         assertThat(requestLine.getPath()).isEqualTo("/index.html");
     }
@@ -38,7 +38,7 @@ class RequestLineV2Test {
     @Test
     @DisplayName("QueryParam 파싱")
     public void parseQueryParam() throws IOException {
-        RequestLineV2 requestLine = new RequestLineV2("GET /user/create?userId=jwkim.oa&password=1234 HTTP/1.1");
+        RequestLine requestLine = new RequestLine("GET /user/create?userId=jwkim.oa&password=1234 HTTP/1.1");
         Map<String, String> queryParams = requestLine.getQueryParams();
         assertThat(queryParams.get("userId")).isEqualTo("jwkim.oa");
         assertThat(queryParams.get("password")).isEqualTo("1234");
