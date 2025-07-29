@@ -64,7 +64,7 @@ public class HttpRequest {
         Map<String, String> headerMap = new HashMap<>();
         String line;
         while ((line = br.readLine()) != null && !line.isEmpty()) {
-            log.debug("RequestLine: {}", requestLine);
+            log.debug("RequestLine - method: {}, path: {}", requestLine.getMethod(), requestLine.getPath());
             HttpRequestUtils.Pair pair = HttpRequestUtils.parseHeader(line);
             headerMap.put(pair.getKey(), pair.getValue());
         }

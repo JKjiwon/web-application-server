@@ -4,21 +4,16 @@ import db.DataBase;
 import model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import util.HttpRequestUtils;
-import util.IOUtils;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
-import java.net.URLDecoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -36,63 +31,38 @@ public class RequestHandler extends Thread {
         log.debug("New Client Connect! Connected IP : {}, Port : {}", connection.getInetAddress(),
                 connection.getPort());
 
-        try (BufferedReader input = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        try (connection;
+             BufferedReader input = new BufferedReader(new InputStreamReader(connection.getInputStream()));
              DataOutputStream output = new DataOutputStream(connection.getOutputStream())) {
-            RequestLine requestLine = extractRequestLine(input);
-            Map<String, String> headers = extractHeaders(input);
 
-            if (requestLine.isPost() && requestLine.getPath().startsWith("/user/create")) {
-                String requestBody = readRequestBody(headers, input);
-                log.debug("Request Body {}", requestBody);
-                User user = createUser(requestBody);
+            HttpRequest request = new HttpRequest(input);
+
+            if (request.isPostMethod() && request.getPath().equals("/user/create")) {
+                User user = createUser(request);
                 DataBase.addUser(user);
                 log.info("User created! {}", user);
                 redirectUrl(output, "/index.html");
-            } else if (requestLine.isPost() && requestLine.getPath().startsWith("/user/login")) {
-                String requestBody = readRequestBody(headers, input);
-                log.debug("Request Body {}", requestBody);
-                boolean isLogin = login(requestBody);
+            } else if (request.isPostMethod() && request.getPath().equals("/user/login")) {
+                boolean isLogin = login(request);
                 if (isLogin) {
                     loginSuccess(output);
                     return;
                 }
                 loginFail(output);
-            } else if (requestLine.getPath().equals("/user/list")) {
-                if (!isLogined(headers)) {
+            } else if (request.getPath().equals("/user/list")) {
+                if (!isLogin(request)) {
                     redirectUrl(output, "/index.html");
                     return;
                 }
                 writeUserList(output);
-            } else if (requestLine.isGet() && requestLine.getPath().endsWith(".css")) {
-                writeCss(requestLine.getPath(), output);
+            } else if (request.isGetMethod() && request.getPath().endsWith(".css")) {
+                writeCss(request.getPath(), output);
             } else {
-                writeHtml(Files.readAllBytes(Path.of("./webapp" + requestLine.getPath())), output);
+                writeHtml(Files.readAllBytes(Path.of("./webapp" + request.getPath())), output);
             }
         } catch (IOException e) {
             log.error(e.getMessage());
         }
-    }
-
-    private RequestLine extractRequestLine(BufferedReader input) throws IOException {
-        String line = input.readLine();
-        if (line == null || line.isEmpty()) {
-            throw new IOException("No request line received");
-        }
-        String path = extractPath(line);
-        log.debug("Path {}", path);
-        String method = extractMethod(line);
-        return new RequestLine(method, path);
-    }
-
-    private static Map<String, String> extractHeaders(BufferedReader input) throws IOException {
-        Map<String, String> headers = new HashMap<>();
-        String headerLine = null;
-        while (!(headerLine = input.readLine()).isEmpty()) {
-            String[] parts = headerLine.split(":");
-            headers.put(parts[0].trim(), parts[1].trim());
-            log.debug("Header {}", headerLine);
-        }
-        return headers;
     }
 
     private void writeCss(String path, DataOutputStream output) throws IOException {
@@ -146,11 +116,6 @@ public class RequestHandler extends Thread {
         return sb;
     }
 
-    private String extractMethod(String requestLine) {
-        String[] parts = requestLine.split(" ");
-        return parts[0];
-    }
-
     private void loginSuccess(DataOutputStream output) {
         try {
             output.writeBytes("HTTP/1.1 302 Found\r\n");
@@ -175,10 +140,9 @@ public class RequestHandler extends Thread {
         }
     }
 
-    private boolean login(String requestBody) {
-        Map<String, String> userInfos = HttpRequestUtils.parseQueryString(requestBody);
-        String userId = URLDecoder.decode(userInfos.getOrDefault("userId", ""), UTF_8);
-        String password = URLDecoder.decode(userInfos.getOrDefault("password", ""), UTF_8);
+    private boolean login(HttpRequest request) {
+        String userId = request.getParameter("userId");
+        String password = request.getParameter("password");
 
         User foundUser = DataBase.findUserById(userId);
         if (foundUser == null) {
@@ -187,28 +151,16 @@ public class RequestHandler extends Thread {
         return foundUser.getPassword().equals(password);
     }
 
-    private String extractPath(String requestLine) {
-        String[] parts = requestLine.split(" ");
-        return parts[1];
-    }
-
-    private String readRequestBody(Map<String, String> headers, BufferedReader input) throws IOException {
-        int contentLength = Integer.parseInt(headers.get("Content-Length"));
-        return IOUtils.readData(input, contentLength);
-    }
-
-    private User createUser(String requestBody) {
-        Map<String, String> queryStringMap = HttpRequestUtils.parseQueryString(requestBody);
-        String userId = queryStringMap.getOrDefault("userId", "");
-        String password = queryStringMap.getOrDefault("password", "");
-        String name = queryStringMap.getOrDefault("name", "");
-        String email = queryStringMap.getOrDefault("email", "");
+    private User createUser(HttpRequest request) {
+        String userId = request.getParameter("userId");
+        String password = request.getParameter("password");
+        String name = request.getParameter("name");
+        String email = request.getParameter("email");
         return new User(userId, password, name, email);
     }
 
-    private boolean isLogined(Map<String, String> headers) {
-        Map<String, String> cookie = HttpRequestUtils.parseCookies(headers.get("Cookie"));
-        return cookie.getOrDefault("logined", "false").equals("true");
+    private boolean isLogin(HttpRequest request) {
+        return request.getCookie("logined").equals("true");
     }
 
     private void response200Header(DataOutputStream output, String contentType, int lengthOfBodyContent) {
