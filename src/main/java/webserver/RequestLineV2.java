@@ -8,9 +8,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class RequestLineV2 {
-    private String method;
-    private String path;
-    private Map<String, String> queryParams;
+    private final String method;
+    private final String path;
+    private final Map<String, String> queryParams;
 
     public RequestLineV2(String line) throws IOException {
         if (line == null) {
@@ -40,13 +40,5 @@ public class RequestLineV2 {
 
     public Map<String, String> getQueryParams() {
         return Collections.unmodifiableMap(queryParams);
-    }
-
-    public boolean isGet() {
-        return method.equals("GET");
-    }
-
-    public boolean isPost() {
-        return method.equals("POST");
     }
 }

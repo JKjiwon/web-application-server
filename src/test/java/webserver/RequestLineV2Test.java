@@ -43,18 +43,4 @@ class RequestLineV2Test {
         assertThat(queryParams.get("userId")).isEqualTo("jwkim.oa");
         assertThat(queryParams.get("password")).isEqualTo("1234");
     }
-
-    @Test
-    @DisplayName("GET Method 인지 확인")
-    public void isGet() throws IOException {
-        RequestLineV2 requestLine = new RequestLineV2("GET /index.html HTTP/1.1");
-        assertThat(requestLine.isGet()).isTrue();
-    }
-
-    @Test
-    @DisplayName("POST Method 인지 확인")
-    public void isPost() throws IOException {
-        RequestLineV2 requestLine = new RequestLineV2("POST /user/create HTTP/1.1");
-        assertThat(requestLine.isPost()).isTrue();
-    }
 }
