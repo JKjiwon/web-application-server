@@ -79,9 +79,9 @@ public class HttpResponse {
     }
 
     private String extractContentType(String path) {
-        if (path.endsWith("css")) {
+        if (path.endsWith(".css")) {
             return "text/css";
-        } else if (path.endsWith("js")) {
+        } else if (path.endsWith(".js")) {
             return "text/javascript";
         } else {
             return "text/html";
