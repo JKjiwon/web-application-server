@@ -10,8 +10,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,66 +34,40 @@ public class RequestHandler extends Thread {
              DataOutputStream output = new DataOutputStream(connection.getOutputStream())) {
 
             HttpRequest request = new HttpRequest(input);
+            HttpResponse response = new HttpResponse(output);
 
             if (request.isPostMethod() && request.getPath().equals("/user/create")) {
                 User user = createUser(request);
                 DataBase.addUser(user);
                 log.info("User created! {}", user);
-                redirectUrl(output, "/index.html");
+                response.sendRedirect("/index.html");
             } else if (request.isPostMethod() && request.getPath().equals("/user/login")) {
                 boolean isLogin = login(request);
                 if (isLogin) {
-                    loginSuccess(output);
+                    loginSuccess(response);
                     return;
                 }
-                loginFail(output);
+                loginFail(response);
             } else if (request.getPath().equals("/user/list")) {
                 if (!isLogin(request)) {
-                    redirectUrl(output, "/index.html");
+                    response.sendRedirect("/index.html");
                     return;
                 }
-                writeUserList(output);
-            } else if (request.isGetMethod() && request.getPath().endsWith(".css")) {
-                writeCss(request.getPath(), output);
+                response.forwardBody(createUserListBody().getBytes(UTF_8));
             } else {
-                writeHtml(Files.readAllBytes(Path.of("./webapp" + request.getPath())), output);
+                response.forward(request.getPath());
             }
         } catch (IOException e) {
             log.error(e.getMessage());
         }
     }
 
-    private void writeCss(String path, DataOutputStream output) throws IOException {
-        byte[] body = Files.readAllBytes(Path.of("./webapp" + path));
-        response200Header(output, "text/css", body.length);
-        responseBody(output, body);
-    }
-
-    private void writeUserList(DataOutputStream output) {
+    private String createUserListBody() {
         List<User> users = new ArrayList<>(DataBase.findAll());
-        StringBuilder sb = makeUserTable(users);
-        response200Header(output, "text/html", sb.toString().getBytes(UTF_8).length);
-        responseBody(output, sb.toString().getBytes(UTF_8));
+        return createUserTable(users).toString();
     }
 
-    private void writeHtml(byte[] body, DataOutputStream output) throws IOException {
-        response200Header(output, "text/html", body.length);
-        responseBody(output, body);
-    }
-
-    private void redirectUrl(DataOutputStream output, String url) {
-        try {
-            output.writeBytes("HTTP/1.1 302 Found\r\n");
-            output.writeBytes("Location: " + url + "\r\n");
-            output.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
-            output.writeBytes("\r\n");
-            output.flush();
-        } catch (IOException e) {
-            log.error(e.getMessage());
-        }
-    }
-
-    private StringBuilder makeUserTable(List<User> users) {
+    private StringBuilder createUserTable(List<User> users) {
         StringBuilder sb = new StringBuilder();
         sb.append("<table>").append("\n");
         sb.append("    <thead>").append("\n");
@@ -116,28 +88,14 @@ public class RequestHandler extends Thread {
         return sb;
     }
 
-    private void loginSuccess(DataOutputStream output) {
-        try {
-            output.writeBytes("HTTP/1.1 302 Found\r\n");
-            output.writeBytes("Location: /index.html\r\n");
-            output.writeBytes("Set-Cookie: logined=true; Path=/\r\n");
-            output.writeBytes("\r\n");
-            output.flush();
-        } catch (IOException e) {
-            log.error(e.getMessage());
-        }
+    private void loginSuccess(HttpResponse response) {
+        response.addHeader("Set-Cookie", "logined=true; Path=/");
+        response.sendRedirect("/index.html");
     }
 
-    private void loginFail(DataOutputStream output) {
-        try {
-            output.writeBytes("HTTP/1.1 302 Found\r\n");
-            output.writeBytes("Location: /user/login_failed.html\r\n");
-            output.writeBytes("Set-Cookie: logined=false; Path=/\r\n");
-            output.writeBytes("\r\n");
-            output.flush();
-        } catch (IOException e) {
-            log.error(e.getMessage());
-        }
+    private void loginFail(HttpResponse response) {
+        response.addHeader("Set-Cookie", "logined=false; Path=/");
+        response.sendRedirect("/user/login_failed.html");
     }
 
     private boolean login(HttpRequest request) {
@@ -161,26 +119,5 @@ public class RequestHandler extends Thread {
 
     private boolean isLogin(HttpRequest request) {
         return request.getCookie("logined").equals("true");
-    }
-
-    private void response200Header(DataOutputStream output, String contentType, int lengthOfBodyContent) {
-        try {
-            output.writeBytes("HTTP/1.1 200 OK\r\n");
-            output.writeBytes("Content-Type: " + contentType + ";charset=utf-8\r\n");
-            output.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
-            output.writeBytes("\r\n");
-        } catch (IOException e) {
-            log.error(e.getMessage());
-        }
-    }
-
-    private void responseBody(DataOutputStream output, byte[] body) {
-        try {
-            output.write(body);
-            output.writeBytes("\r\n");
-            output.flush();
-        } catch (IOException e) {
-            log.error(e.getMessage());
-        }
     }
 }
