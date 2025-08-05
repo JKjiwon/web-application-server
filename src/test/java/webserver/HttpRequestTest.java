@@ -14,7 +14,8 @@ class HttpRequestTest {
     public void request_GET() throws IOException {
         InputStream in = new FileInputStream(TEST_DIR + "Http_GET.txt");
         BufferedReader br = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
-        HttpRequest httpRequest = new HttpRequest(br);
+        HttpSessionManager httpSessionManager = new HttpSessionManager();
+        HttpRequest httpRequest = new HttpRequest(br, httpSessionManager);
 
         assertThat(httpRequest.getMethod()).isEqualTo(HttpMethod.GET);
         assertThat(httpRequest.getPath()).isEqualTo("/user/create");
@@ -26,7 +27,8 @@ class HttpRequestTest {
     public void request_POST() throws IOException {
         InputStream in = new FileInputStream(TEST_DIR + "Http_POST.txt");
         BufferedReader br = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
-        HttpRequest httpRequest = new HttpRequest(br);
+        HttpSessionManager httpSessionManager = new HttpSessionManager();
+        HttpRequest httpRequest = new HttpRequest(br, httpSessionManager);
 
         assertThat(httpRequest.getMethod()).isEqualTo(HttpMethod.POST);
         assertThat(httpRequest.getPath()).isEqualTo("/user/create");
