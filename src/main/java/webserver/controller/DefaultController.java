@@ -1,8 +1,8 @@
 package webserver.controller;
 
-import webserver.AbstractController;
-import webserver.HttpRequest;
-import webserver.HttpResponse;
+import webserver.core.AbstractController;
+import webserver.core.HttpRequest;
+import webserver.core.HttpResponse;
 
 public class DefaultController extends AbstractController {
     @Override

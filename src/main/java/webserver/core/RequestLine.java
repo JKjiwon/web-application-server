@@ -1,4 +1,4 @@
-package webserver;
+package webserver.core;
 
 import util.HttpRequestUtils;
 

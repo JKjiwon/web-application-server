@@ -2,6 +2,8 @@ package webserver;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import webserver.core.HttpMethod;
+import webserver.core.RequestLine;
 
 import java.io.IOException;
 import java.util.Map;

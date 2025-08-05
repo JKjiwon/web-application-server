@@ -1,4 +1,4 @@
-package webserver;
+package webserver.core;
 
 public interface HttpSession {
 

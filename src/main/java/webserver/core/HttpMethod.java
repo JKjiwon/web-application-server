@@ -1,4 +1,4 @@
-package webserver;
+package webserver.core;
 
 public enum HttpMethod {
     GET, POST;

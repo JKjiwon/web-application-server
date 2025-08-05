@@ -1,4 +1,4 @@
-package webserver;
+package webserver.core;
 
 import webserver.controller.DefaultController;
 

@@ -4,9 +4,9 @@ import db.DataBase;
 import model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import webserver.AbstractController;
-import webserver.HttpRequest;
-import webserver.HttpResponse;
+import webserver.core.AbstractController;
+import webserver.core.HttpRequest;
+import webserver.core.HttpResponse;
 
 public class CreateUserController extends AbstractController {
 

@@ -1,4 +1,4 @@
-package webserver;
+package webserver.core;
 
 public abstract class AbstractController implements Controller {
 

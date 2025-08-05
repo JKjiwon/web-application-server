@@ -1,6 +1,9 @@
 package webserver;
 
 import org.junit.jupiter.api.Test;
+import webserver.core.HttpMethod;
+import webserver.core.HttpRequest;
+import webserver.core.HttpSessionManager;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;

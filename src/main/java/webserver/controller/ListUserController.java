@@ -2,10 +2,10 @@ package webserver.controller;
 
 import db.DataBase;
 import model.User;
-import webserver.AbstractController;
-import webserver.HttpRequest;
-import webserver.HttpResponse;
-import webserver.HttpSession;
+import webserver.core.AbstractController;
+import webserver.core.HttpRequest;
+import webserver.core.HttpResponse;
+import webserver.core.HttpSession;
 
 import java.util.ArrayList;
 import java.util.List;
