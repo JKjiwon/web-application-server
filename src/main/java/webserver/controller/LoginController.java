@@ -42,7 +42,7 @@ public class LoginController extends AbstractController {
     private void loginSuccess(HttpRequest request, HttpResponse response, User user) {
         HttpSession session = request.getSession();
         session.setAttribute("user", user);
-        response.sendRedirect("/index.html");
+        response.sendRedirect("/");
     }
 
     private void loginFail(HttpResponse response) {

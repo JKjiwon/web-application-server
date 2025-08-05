@@ -18,10 +18,11 @@ public class HttpRequest {
     private final Map<String, String> headers;
     private final Map<String, String> parameters = new HashMap<>();
     private final Map<String, String> cookies = new HashMap<>();
-    private HttpSession session;
+    private final HttpSessionManager sessionManager;
 
-    public HttpRequest(BufferedReader br) throws IOException {
+    public HttpRequest(BufferedReader br, HttpSessionManager sessionManager) throws IOException {
         requestLine = extractRequestLine(br);
+        this.sessionManager = sessionManager;
         log.debug("RequestLine - method: {}, path: {}", requestLine.getMethod(), requestLine.getPath());
         headers = extractRequestHeader(br);
         extractQueryParam();
@@ -30,11 +31,8 @@ public class HttpRequest {
     }
 
     public HttpSession getSession() {
-        return session;
-    }
-
-    public void setSession(HttpSession session) {
-        this.session = session;
+        String sessionId = cookies.get(HttpSessionUtils.HTTP_SESSION_ID_KEY);
+        return sessionManager.getSession(sessionId);
     }
 
     public String getHeader(String key) {

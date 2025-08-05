@@ -4,18 +4,25 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class HttpSessionManager {
-    private Map<String, HttpSession> sessionMap = new HashMap<>();
+
+    private final Map<String, HttpSession> sessions = new HashMap<>();
 
     public void setSession(String sessionId, HttpSession session) {
-        sessionMap.put(sessionId, session);
+        sessions.put(sessionId, session);
     }
 
     public HttpSession getSession(String sessionId) {
-        return sessionMap.get(sessionId);
+        HttpSession session = sessions.get(sessionId);
+        if (session == null) {
+            session = new StandardSession(sessionId, this);
+            setSession(sessionId, session);
+            return session;
+        }
+        return session;
     }
 
     public void removeSession(String sessionId) {
-        sessionMap.remove(sessionId);
+        sessions.remove(sessionId);
     }
 
 }

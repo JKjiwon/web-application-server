@@ -7,10 +7,13 @@ public class StandardSession implements HttpSession {
 
     private final String id;
 
-    private Map<String, Object> attributeMap = new HashMap<>();
+    private final Map<String, Object> attributes = new HashMap<>();
 
-    public StandardSession(String id) {
+    private final HttpSessionManager sessionManager;
+
+    public StandardSession(String id, HttpSessionManager sessionManager) {
         this.id = id;
+        this.sessionManager = sessionManager;
     }
 
     @Override
@@ -20,21 +23,21 @@ public class StandardSession implements HttpSession {
 
     @Override
     public void setAttribute(String name, Object value) {
-        attributeMap.put(name, value);
+        attributes.put(name, value);
     }
 
     @Override
     public Object getAttribute(String name) {
-        return attributeMap.get(name);
+        return attributes.get(name);
     }
 
     @Override
     public void removeAttribute(String name) {
-        attributeMap.remove(name);
+        attributes.remove(name);
     }
 
     @Override
     public void invalidate() {
-        attributeMap.clear();
+        sessionManager.removeSession(id);
     }
 }

@@ -30,9 +30,9 @@ public class RequestHandler extends Thread {
         try (connection;
              BufferedReader input = new BufferedReader(new InputStreamReader(connection.getInputStream()));
              DataOutputStream output = new DataOutputStream(connection.getOutputStream())) {
-            HttpRequest request = new HttpRequest(input);
+            HttpRequest request = new HttpRequest(input, httpSessionManager);
             HttpResponse response = new HttpResponse(output);
-            String sessionId = HttpSessionUtils.getSessionId(request, httpSessionManager);
+            String sessionId = HttpSessionUtils.getSessionId(request);
             response.addHeader("Set-Cookie", HttpSessionUtils.HTTP_SESSION_ID_KEY + "=" + sessionId + "; Path=/");
             controllerManager.service(request, response);
         } catch (IOException e) {

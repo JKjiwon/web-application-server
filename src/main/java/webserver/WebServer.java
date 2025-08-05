@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import webserver.controller.CreateUserController;
 import webserver.controller.ListUserController;
 import webserver.controller.LoginController;
+import webserver.controller.LogoutController;
 
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -25,6 +26,7 @@ public class WebServer {
         controllerManager.addController("/user/create", new CreateUserController());
         controllerManager.addController("/user/login", new LoginController());
         controllerManager.addController("/user/list", new ListUserController());
+        controllerManager.addController("/user/logout", new LogoutController());
 
         HttpSessionManager httpSessionManager = new HttpSessionManager();
 
