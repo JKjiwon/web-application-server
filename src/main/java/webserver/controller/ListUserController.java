@@ -19,7 +19,7 @@ public class ListUserController extends AbstractController {
             response.sendRedirect("/index.html");
             return;
         }
-        response.forwardBody(createUserListBody().getBytes(UTF_8));
+        response.forwardBody(createUserListBody());
     }
 
     @Override

@@ -31,7 +31,7 @@ class RequestLineTest {
     @DisplayName("RequestLine 생성")
     public void create() throws IOException {
         RequestLine requestLine = new RequestLine("GET /index.html HTTP/1.1");
-        assertThat(requestLine.getMethod()).isEqualTo("GET");
+        assertThat(requestLine.getMethod()).isEqualTo(HttpMethod.GET);
         assertThat(requestLine.getPath()).isEqualTo("/index.html");
     }
 

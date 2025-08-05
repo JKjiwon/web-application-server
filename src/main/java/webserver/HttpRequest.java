@@ -41,14 +41,14 @@ public class HttpRequest {
     }
 
     public boolean isGetMethod() {
-        return requestLine.getMethod().equals("GET");
+        return requestLine.getMethod().isGet();
     }
 
     public boolean isPostMethod() {
-        return requestLine.getMethod().equals("POST");
+        return requestLine.getMethod().isPost();
     }
 
-    public String getMethod() {
+    public HttpMethod getMethod() {
         return requestLine.getMethod();
     }
 

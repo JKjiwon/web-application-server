@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class RequestLine {
-    private final String method;
+    private final HttpMethod method;
     private final String path;
     private final Map<String, String> queryParams;
 
@@ -20,7 +20,7 @@ public class RequestLine {
         if (lineTokens.length != 3) {
             throw new IOException("Invalid RequestLine");
         }
-        this.method = lineTokens[0];
+        this.method = HttpMethod.valueOf(lineTokens[0]);
         String[] urlTokens = lineTokens[1].split("\\?", 2);
         path = urlTokens[0];
         if (urlTokens.length > 1) {
@@ -30,7 +30,7 @@ public class RequestLine {
         }
     }
 
-    public String getMethod() {
+    public HttpMethod getMethod() {
         return method;
     }
 

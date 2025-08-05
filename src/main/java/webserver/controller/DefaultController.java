@@ -7,7 +7,8 @@ import webserver.HttpResponse;
 public class DefaultController extends AbstractController {
     @Override
     public void doGet(HttpRequest request, HttpResponse response) {
-        response.forward(request.getPath());
+        String forwardPath = request.getPath().equals("/") ? "/index.html" : request.getPath();
+        response.forward(forwardPath);
     }
 
     @Override

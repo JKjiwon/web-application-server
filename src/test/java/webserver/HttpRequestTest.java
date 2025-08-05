@@ -16,7 +16,7 @@ class HttpRequestTest {
         BufferedReader br = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
         HttpRequest httpRequest = new HttpRequest(br);
 
-        assertThat(httpRequest.getMethod()).isEqualTo("GET");
+        assertThat(httpRequest.getMethod()).isEqualTo(HttpMethod.GET);
         assertThat(httpRequest.getPath()).isEqualTo("/user/create");
         assertThat(httpRequest.getHeader("Connection")).isEqualTo("keep-alive");
         assertThat(httpRequest.getParameter("userId")).isEqualTo("jwkim.oa");
@@ -28,7 +28,7 @@ class HttpRequestTest {
         BufferedReader br = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
         HttpRequest httpRequest = new HttpRequest(br);
 
-        assertThat(httpRequest.getMethod()).isEqualTo("POST");
+        assertThat(httpRequest.getMethod()).isEqualTo(HttpMethod.POST);
         assertThat(httpRequest.getPath()).isEqualTo("/user/create");
         assertThat(httpRequest.getHeader("Connection")).isEqualTo("keep-alive");
         assertThat(httpRequest.getParameter("userId")).isEqualTo("jwkim.oa");
