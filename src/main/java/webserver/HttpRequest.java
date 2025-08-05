@@ -18,6 +18,7 @@ public class HttpRequest {
     private final Map<String, String> headers;
     private final Map<String, String> parameters = new HashMap<>();
     private final Map<String, String> cookies = new HashMap<>();
+    private HttpSession session;
 
     public HttpRequest(BufferedReader br) throws IOException {
         requestLine = extractRequestLine(br);
@@ -26,6 +27,14 @@ public class HttpRequest {
         extractQueryParam();
         extractFormData(br);
         extractCookie();
+    }
+
+    public HttpSession getSession() {
+        return session;
+    }
+
+    public void setSession(HttpSession session) {
+        this.session = session;
     }
 
     public String getHeader(String key) {

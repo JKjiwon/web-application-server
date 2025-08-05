@@ -15,10 +15,12 @@ public class RequestHandler extends Thread {
 
     private final Socket connection;
     private final ControllerManager controllerManager;
+    private final HttpSessionManager httpSessionManager;
 
-    public RequestHandler(Socket connectionSocket, ControllerManager controllerManager) {
+    public RequestHandler(Socket connectionSocket, ControllerManager controllerManager, HttpSessionManager httpSessionManager) {
         this.connection = connectionSocket;
         this.controllerManager = controllerManager;
+        this.httpSessionManager = httpSessionManager;
     }
 
     public void run() {
@@ -30,6 +32,8 @@ public class RequestHandler extends Thread {
              DataOutputStream output = new DataOutputStream(connection.getOutputStream())) {
             HttpRequest request = new HttpRequest(input);
             HttpResponse response = new HttpResponse(output);
+            String sessionId = HttpSessionUtils.getSessionId(request, httpSessionManager);
+            response.addHeader("Set-Cookie", HttpSessionUtils.HTTP_SESSION_ID_KEY + "=" + sessionId + "; Path=/");
             controllerManager.service(request, response);
         } catch (IOException e) {
             log.error(e.getMessage());

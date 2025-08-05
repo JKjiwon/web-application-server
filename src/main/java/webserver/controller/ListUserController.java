@@ -5,11 +5,10 @@ import model.User;
 import webserver.AbstractController;
 import webserver.HttpRequest;
 import webserver.HttpResponse;
+import webserver.HttpSession;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class ListUserController extends AbstractController {
 
@@ -28,7 +27,8 @@ public class ListUserController extends AbstractController {
     }
 
     private boolean isLogin(HttpRequest request) {
-        return request.getCookie("logined").equals("true");
+        HttpSession session = request.getSession();
+        return session.getAttribute("user") != null;
     }
 
     private String createUserListBody() {
