@@ -17,7 +17,7 @@ public class HttpRequest {
     private final RequestLine requestLine;
     private final Map<String, String> headers;
     private final Map<String, String> parameters = new HashMap<>();
-    private final Map<String, String> cookies = new HashMap<>();
+    private final HttpCookie cookie;
     private final HttpSessionManager sessionManager;
 
     public HttpRequest(BufferedReader br, HttpSessionManager sessionManager) throws IOException {
@@ -27,11 +27,11 @@ public class HttpRequest {
         headers = extractRequestHeader(br);
         extractQueryParam();
         extractFormData(br);
-        extractCookie();
+        cookie = extractCookie();
     }
 
     public HttpSession getSession() {
-        String sessionId = cookies.get(HttpSessionUtils.HTTP_SESSION_ID_KEY);
+        String sessionId = cookie.getCookie(HttpSessionUtils.HTTP_SESSION_ID_KEY);
         return sessionManager.getSession(sessionId);
     }
 
@@ -44,7 +44,7 @@ public class HttpRequest {
     }
 
     public String getCookie(String key) {
-        return cookies.get(key);
+        return cookie.getCookie(key);
     }
 
     public boolean isGetMethod() {
@@ -95,8 +95,8 @@ public class HttpRequest {
         }
     }
 
-    private void extractCookie() {
-        String cookie = getHeader("Cookie");
-        cookies.putAll(HttpRequestUtils.parseCookies(cookie));
+    private HttpCookie extractCookie() {
+        String cookieValue = getHeader("Cookie");
+        return new HttpCookie(cookieValue);
     }
 }
